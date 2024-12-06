@@ -82,7 +82,7 @@ contract CheckTheChain {
         view
         returns (uint256 price, string memory priceStr)
     {
-        uint256 factor = 1e18;
+        uint256 factor = 10 ** token.readDecimals();
         (address pool, bool usdcFirst) = _computePoolAddress(USDC, token);
         if (!usdcFirst) {
             unchecked {
@@ -103,7 +103,7 @@ contract CheckTheChain {
         view
         returns (uint256 price, string memory priceStr)
     {
-        uint256 factor = 1e18;
+        uint256 factor = 10 ** token.readDecimals();
         (address pool, bool wethFirst) = _computePoolAddress(WETH, token);
         if (!wethFirst) {
             unchecked {
@@ -126,7 +126,7 @@ contract CheckTheChain {
     {
         (uint256 tokenPriceInETH,) = checkPriceInETH(token);
         (uint256 ethPriceInUSDC,) = checkPrice(WETH);
-        price = (tokenPriceInETH * ethPriceInUSDC) / 1e18;
+        price = (tokenPriceInETH * ethPriceInUSDC) / 10 ** token.readDecimals();
         priceStr = _convertWeiToString(price, 6);
     }
 

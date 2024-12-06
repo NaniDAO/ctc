@@ -1,2 +1,3 @@
-Tester:test(string) (runs: 256, μ: 47790, ~: 24790)
-TesterTest:testTest() (gas: 29940)
+CheckTheChainTest:testCheckPriceARB() (gas: 43920)
+CheckTheChainTest:testCheckPriceUNI() (gas: 42455)
+CheckTheChainTest:testCheckPriceWETH() (gas: 51206)

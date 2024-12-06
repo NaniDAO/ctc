@@ -77,16 +77,25 @@ contract CheckTheChain {
         priceStr = _convertWeiToString(price, 6);
     }
 
-    function checkPrices(address[] calldata tokens)
+    function checkPriceInETH(address token)
         public
         view
-        returns (uint256[] memory prices, string[] memory priceStrs)
+        returns (uint256 price, string memory priceStr)
     {
-        prices = new uint256[](tokens.length);
-        priceStrs = new string[](tokens.length);
-        for (uint256 i; i != tokens.length; ++i) {
-            (prices[i], priceStrs[i]) = checkPrice(tokens[i]);
+        uint256 factor = 1e18;
+        (address pool, bool wethFirst) = _computePoolAddress(WETH, token);
+        if (!wethFirst) {
+            unchecked {
+                (uint160 sqrtPriceX96,,,,,,) = IUniswapV3PoolState(pool).slot0();
+                price = (uint256(sqrtPriceX96) ** 2 * factor) >> (96 * 2);
+            }
+        } else {
+            unchecked {
+                (uint160 sqrtPriceX96,,,,,,) = IUniswapV3PoolState(pool).slot0();
+                price = (factor * (1 << (96 * 2))) / (uint256(sqrtPriceX96) ** 2);
+            }
         }
+        priceStr = _convertWeiToString(price, 18);
     }
 
     function _convertWeiToString(uint256 weiAmount, uint256 decimals)

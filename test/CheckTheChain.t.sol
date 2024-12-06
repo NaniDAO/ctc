@@ -148,4 +148,65 @@ contract CheckTheChainTest is Test {
         console.log("Price for UNI by alias: ", price);
         console.log("Price string: ", strPrice);
     }
+
+    function testUSDCBalanceOf() public view {
+        address user = 0x1C0Aa8cCD568d90d61659F060D1bFb1e6f855A20;
+        address usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+
+        // Assume USDC is already registered in your setup
+        (uint256 balance, string memory balanceAdjustedStr) = ctc.balanceOf(user, usdc);
+
+        console.log("USDC Balance: ", balance);
+        console.log("USDC Adjusted Balance String: ", balanceAdjustedStr);
+    }
+
+    function testUSDCTotalSupply() public view {
+        address usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+
+        (uint256 supply, string memory supplyAdjustedStr) = ctc.totalSupply(usdc);
+
+        console.log("USDC Total Supply: ", supply);
+        console.log("USDC Adjusted Total Supply String: ", supplyAdjustedStr);
+    }
+
+    function testNANIBalanceOf() public view {
+        address user = 0x1C0Aa8cCD568d90d61659F060D1bFb1e6f855A20;
+
+        // Assume USDC is already registered in your setup.
+        (uint256 balance, string memory balanceAdjustedStr) = ctc.balanceOf(user, NANI);
+
+        console.log("NANI Balance: ", balance);
+        console.log("NANI Adjusted Balance String: ", balanceAdjustedStr);
+    }
+
+    function testNANITotalSupply() public view {
+        (uint256 supply, string memory supplyAdjustedStr) = ctc.totalSupply(NANI);
+
+        console.log("NANI Total Supply: ", supply);
+        console.log("NANI Adjusted Total Supply String: ", supplyAdjustedStr);
+    }
+
+    function testWhatIsTheAddressOf() public view {
+        string memory ensName = "z0r0z.eth";
+
+        try ctc.whatIsTheAddressOf(ensName) returns (address _owner, address receiver, bytes32 node)
+        {
+            console.log("ENS Name:", ensName);
+            console.log("Resolved Owner Address:", _owner);
+            console.log("Resolved Receiver Address:", receiver);
+        } catch (bytes memory reason) {
+            console.log("Failed to resolve ENS name:", string(reason));
+        }
+    }
+
+    function testWhatIsTheNameOf() public view {
+        address ethAddress = 0x1C0Aa8cCD568d90d61659F060D1bFb1e6f855A20;
+
+        try ctc.whatIsTheNameOf(ethAddress) returns (string memory ensName) {
+            console.log("Ethereum Address:", ethAddress);
+            console.log("Resolved ENS Name:", ensName);
+        } catch (bytes memory reason) {
+            console.log("Failed to resolve ENS name for address:", string(reason));
+        }
+    }
 }

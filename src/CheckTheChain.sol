@@ -3,8 +3,8 @@ pragma solidity 0.8.28;
 
 import {MetadataReaderLib} from "@solady/src/utils/MetadataReaderLib.sol";
 
-/// @notice Check the chain price of listed tokens. Uses UniswapV3 pools.
-/// @dev `prices` are in terms of raw USDC. `priceStr` is formatted for UIs.
+/// @notice Check the chain price of liquid tokens. Uses UniswapV3 pools.
+/// @dev `prices` are in terms of USDC or ETH. `priceStr` is formatted for UIs.
 contract CheckTheChain {
     using MetadataReaderLib for address;
 
@@ -26,12 +26,53 @@ contract CheckTheChain {
     bytes32 internal constant UNISWAP_V3_POOL_INIT_CODE_HASH =
         0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
 
+    /// @dev ENS fallback registry contract.
+    IENSHelper internal constant ENS_REGISTRY =
+        IENSHelper(0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e);
+
+    /// @dev ENS name wrapper token contract.
+    IENSHelper internal constant ENS_WRAPPER =
+        IENSHelper(0xD4416b13d2b3a9aBae7AcD5D6C2BbDBE25686401);
+
+    /// @dev ENS reverse registrar contract.
+    IENSHelper internal constant ENS_REVERSE =
+        IENSHelper(0xa58E81fe9b61B5c3fE2AFD33CF304c454AbFc7Cb);
+
+    /// @dev String mapping for `ENSAsciiNormalizer` logic.
+    bytes internal constant ASCII_MAP =
+        hex"2d00020101000a010700016101620163016401650166016701680169016a016b016c016d016e016f0170017101720173017401750176017701780179017a06001a010500";
+
     mapping(address asset => Token) public assets;
     mapping(string symbol => address) public addresses;
 
     address[] public registered;
 
-    constructor() payable {}
+    /// @dev Each index in idnamap refers to an ascii code point.
+    /// If idnamap[char] > 2, char maps to a valid ascii character.
+    /// Otherwise, idna[char] returns Rule.DISALLOWED or Rule.VALID.
+    /// Modified from `ENSAsciiNormalizer` deployed by royalfork.eth
+    /// (0x4A5cae3EC0b144330cf1a6CeAD187D8F6B891758).
+    bytes1[] internal _idnamap;
+
+    /// @dev `ENSAsciiNormalizer` rules.
+    enum Rule {
+        DISALLOWED,
+        VALID
+    }
+
+    error InvalidReceiver();
+
+    /// @dev Constructs this IE on Ethereum with ENS `ASCII_MAP`.
+    constructor() payable {
+        unchecked {
+            for (uint256 i; i != ASCII_MAP.length; i += 2) {
+                bytes1 r = ASCII_MAP[i + 1];
+                for (uint8 j; j != uint8(ASCII_MAP[i]); ++j) {
+                    _idnamap.push(r);
+                }
+            }
+        }
+    }
 
     struct Token {
         string name;
@@ -139,7 +180,7 @@ contract CheckTheChain {
         prices = new uint256[](length);
         priceStrs = new string[](length);
 
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i != length; ++i) {
             (prices[i], priceStrs[i]) = checkPrice(tokens[i]);
         }
     }
@@ -153,7 +194,7 @@ contract CheckTheChain {
         prices = new uint256[](length);
         priceStrs = new string[](length);
 
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i != length; ++i) {
             (prices[i], priceStrs[i]) = checkPriceInETH(tokens[i]);
         }
     }
@@ -167,7 +208,7 @@ contract CheckTheChain {
         prices = new uint256[](length);
         priceStrs = new string[](length);
 
-        for (uint256 i = 0; i < length; i++) {
+        for (uint256 i; i != length; ++i) {
             (prices[i], priceStrs[i]) = checkPriceInETHToUSDC(tokens[i]);
         }
     }
@@ -314,8 +355,7 @@ contract CheckTheChain {
 
     /// @dev Returns the amount of ERC20 `token` owned by `account`. From the Solady STL.
     function _balanceOf(address token, address account) internal view returns (uint256 amount) {
-        /// @solidity memory-safe-assembly
-        assembly {
+        assembly ("memory-safe") {
             mstore(0x14, account) // Store the `account` argument.
             mstore(0x00, 0x70a08231000000000000000000000000) // `balanceOf(address)`.
             amount :=
@@ -344,22 +384,81 @@ contract CheckTheChain {
     function balanceOf(address user, address token)
         public
         view
-        returns (uint256 balance, uint256 balanceAdjusted)
+        returns (uint256 balance, string memory balanceStr)
     {
         bool isEth = token == address(0);
         balance = isEth ? user.balance : _balanceOf(token, user);
-        balanceAdjusted = balance / 10 ** (isEth ? 18 : token.readDecimals());
+        uint8 decimals = isEth ? 18 : token.readDecimals();
+        balanceStr = _convertWeiToString(balance, decimals);
     }
 
     /// @dev Returns the total supply of a token.
     function totalSupply(address token)
         public
         view
-        virtual
-        returns (uint256 supply, uint256 supplyAdjusted)
+        returns (uint256 supply, string memory supplyStr)
     {
         supply = _totalSupply(token);
-        supplyAdjusted = supply / 10 ** token.readDecimals();
+        uint8 decimals = token.readDecimals();
+        supplyStr = _convertWeiToString(supply, decimals);
+    }
+
+    /// @dev Returns ENS name ownership details.
+    /// note: The `receiver` should be already set,
+    /// or, the command should use the raw address.
+    function whatIsTheAddressOf(string memory name)
+        public
+        view
+        virtual
+        returns (address _owner, address receiver, bytes32 node)
+    {
+        node = _namehash(name);
+        _owner = ENS_REGISTRY.owner(node);
+        if (IENSHelper(_owner) == ENS_WRAPPER) _owner = ENS_WRAPPER.ownerOf(uint256(node));
+        receiver = IENSHelper(ENS_REGISTRY.resolver(node)).addr(node); // Fails on misname.
+        if (receiver == address(0)) revert InvalidReceiver(); // No receiver has been set.
+    }
+
+    /// @dev Returns ENS reverse name resolution details.
+    function whatIsTheNameOf(address user) public view virtual returns (string memory) {
+        bytes32 node = ENS_REVERSE.node(user);
+        return IENSHelper(ENS_REGISTRY.resolver(node)).name(node);
+    }
+
+    /// @dev Computes an ENS domain namehash.
+    function _namehash(string memory domain) internal view virtual returns (bytes32 node) {
+        // Process labels (in reverse order for namehash).
+        uint256 i = bytes(domain).length;
+        uint256 lastDot = i;
+        unchecked {
+            for (; i != 0; --i) {
+                bytes1 c = bytes(domain)[i - 1];
+                if (c == ".") {
+                    node = keccak256(abi.encodePacked(node, _labelhash(domain, i, lastDot)));
+                    lastDot = i - 1;
+                    continue;
+                }
+                require(c < 0x80);
+                bytes1 r = _idnamap[uint8(c)];
+                require(uint8(r) != uint8(Rule.DISALLOWED));
+                if (uint8(r) > 1) {
+                    bytes(domain)[i - 1] = r;
+                }
+            }
+        }
+        return keccak256(abi.encodePacked(node, _labelhash(domain, i, lastDot)));
+    }
+
+    /// @dev Computes an ENS domain labelhash given its start and end.
+    function _labelhash(string memory domain, uint256 start, uint256 end)
+        internal
+        pure
+        virtual
+        returns (bytes32 hash)
+    {
+        assembly ("memory-safe") {
+            hash := keccak256(add(add(domain, 0x20), start), sub(end, start))
+        }
     }
 
     function transferOwnership(address to) public payable onlyOwner {
@@ -372,6 +471,15 @@ contract CheckTheChain {
         if (msg.sender != owner) revert Unauthorized();
         _;
     }
+}
+
+interface IENSHelper {
+    function addr(bytes32) external view returns (address);
+    function node(address) external view returns (bytes32);
+    function owner(bytes32) external view returns (address);
+    function ownerOf(uint256) external view returns (address);
+    function resolver(bytes32) external view returns (address);
+    function name(bytes32) external view returns (string memory);
 }
 
 interface IUniswapV3PoolState {

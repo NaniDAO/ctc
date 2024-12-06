@@ -54,4 +54,10 @@ contract CheckTheChainTest is Test {
         console.log(price);
         console.log(strPrice);
     }
+
+    function testCheckPriceNANIInETHToUSDC() public payable {
+        (uint256 price, string memory strPrice) = ctc.checkPriceInETHToUSDC(NANI);
+        console.log(price);
+        console.log(strPrice);
+    }
 }

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.8.28;
 
-import {LibSort} from "@solady/src/utils/LibSort.sol";
 import {MetadataReaderLib} from "@solady/src/utils/MetadataReaderLib.sol";
 
 /// @notice Check the chain price of listed tokens. Uses UniswapV3 pools.
@@ -30,7 +29,7 @@ contract CheckTheChain {
     mapping(address asset => Token) public assets;
     mapping(string symbol => address) public addresses;
 
-    address[] internal registered;
+    address[] public registered;
 
     constructor() payable {}
 
@@ -41,11 +40,17 @@ contract CheckTheChain {
     }
 
     function register(address token) public onlyOwner {
+        string memory name = token.readName();
         string memory symbol = token.readSymbol();
-        assets[token] = Token(token.readName(), symbol, token.readDecimals());
-        addresses[symbol] = token; // Reverse alias by the symbol.
+        assets[token] = Token(name, symbol, token.readDecimals());
+        addresses[name] = token; // Reverse alias by token name.
+        addresses[symbol] = token; // Reverse alias by token symbol.
         registered.push(token);
         emit Registered(token);
+    }
+
+    function getRegistered() public view returns (address[] memory tokens) {
+        return registered;
     }
 
     function checkPrice(string calldata token)
@@ -54,6 +59,22 @@ contract CheckTheChain {
         returns (uint256 price, string memory priceStr)
     {
         return checkPrice(addresses[token]);
+    }
+
+    function checkPriceInETH(string calldata token)
+        public
+        view
+        returns (uint256 price, string memory priceStr)
+    {
+        return checkPriceInETH(addresses[token]);
+    }
+
+    function checkPriceInETHToUSDC(string calldata token)
+        public
+        view
+        returns (uint256 price, string memory priceStr)
+    {
+        return checkPriceInETHToUSDC(addresses[token]);
     }
 
     function checkPrice(address token)
@@ -96,6 +117,59 @@ contract CheckTheChain {
             }
         }
         priceStr = _convertWeiToString(price, 18);
+    }
+
+    function checkPriceInETHToUSDC(address token)
+        public
+        view
+        returns (uint256 price, string memory priceStr)
+    {
+        (uint256 tokenPriceInETH,) = checkPriceInETH(token);
+        (uint256 ethPriceInUSDC,) = checkPrice(WETH);
+        price = (tokenPriceInETH * ethPriceInUSDC) / 1e18;
+        priceStr = _convertWeiToString(price, 6);
+    }
+
+    function batchCheckPrices(address[] calldata tokens)
+        public
+        view
+        returns (uint256[] memory prices, string[] memory priceStrs)
+    {
+        uint256 length = tokens.length;
+        prices = new uint256[](length);
+        priceStrs = new string[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            (prices[i], priceStrs[i]) = checkPrice(tokens[i]);
+        }
+    }
+
+    function batchCheckPricesInETH(address[] calldata tokens)
+        public
+        view
+        returns (uint256[] memory prices, string[] memory priceStrs)
+    {
+        uint256 length = tokens.length;
+        prices = new uint256[](length);
+        priceStrs = new string[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            (prices[i], priceStrs[i]) = checkPriceInETH(tokens[i]);
+        }
+    }
+
+    function batchCheckPricesInETHToUSDC(address[] calldata tokens)
+        public
+        view
+        returns (uint256[] memory prices, string[] memory priceStrs)
+    {
+        uint256 length = tokens.length;
+        prices = new uint256[](length);
+        priceStrs = new string[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            (prices[i], priceStrs[i]) = checkPriceInETHToUSDC(tokens[i]);
+        }
     }
 
     function _convertWeiToString(uint256 weiAmount, uint256 decimals)
@@ -238,16 +312,7 @@ contract CheckTheChain {
         }
     }
 
-    /// @dev Returns the amount of ERC20 `token` owned by `account`.
-    /*function _balanceOf(address token, address account) internal view returns (uint256 amount) {
-        assembly ("memory-safe") {
-            mstore(0x00, 0x70a08231000000000000000000000000) // `balanceOf(address)`.
-            mstore(0x14, account) // Store the `account` argument.
-            pop(staticcall(gas(), token, 0x10, 0x24, 0x20, 0x20))
-            amount := mload(0x20)
-        }
-    }*/
-
+    /// @dev Returns the amount of ERC20 `token` owned by `account`. From the Solady STL.
     function _balanceOf(address token, address account) internal view returns (uint256 amount) {
         /// @solidity memory-safe-assembly
         assembly {
@@ -261,73 +326,6 @@ contract CheckTheChain {
                         staticcall(gas(), token, 0x10, 0x24, 0x20, 0x20)
                     )
                 )
-        }
-    }
-
-    /// @notice Get registered tokens sorted by their market cap (price * supply).
-    /// @return sorted Array of token addresses sorted by market cap (descending).
-    function getTopTokens() public view returns (address[] memory sorted) {
-        uint256 len = registered.length;
-
-        sorted = new address[](len);
-        uint256[] memory values = new uint256[](len);
-
-        address token;
-
-        // Calculate market caps and prepare arrays.
-        unchecked {
-            for (uint256 i; i != len; ++i) {
-                token = registered[i];
-                sorted[i] = token;
-
-                // Calculate market cap.
-                (uint256 price,) = checkPrice(token);
-                values[i] = price * _totalSupply(token);
-            }
-        }
-
-        // Manual sort by market cap (descending).
-        unchecked {
-            for (uint256 i; i != len - 1; ++i) {
-                for (uint256 j; j != len - i - 1; ++j) {
-                    if (values[j] < values[j + 1]) {
-                        // Swap values.
-                        (values[j], values[j + 1]) = (values[j + 1], values[j]);
-                        // Swap addresses.
-                        (sorted[j], sorted[j + 1]) = (sorted[j + 1], sorted[j]);
-                    }
-                }
-            }
-        }
-    }
-
-    /// @notice Get top N tokens with their details.
-    /// @param limit Maximum number of tokens to return (0 for all).
-    /// @return tokens Array of token addresses.
-    /// @return symbols Array of token symbols.
-    /// @return marketCaps Array of market caps in USDC terms.
-    function getTopTokensDetailed(uint256 limit)
-        public
-        view
-        returns (address[] memory tokens, string[] memory symbols, uint256[] memory marketCaps)
-    {
-        address[] memory sorted = getTopTokens();
-        uint256 len = sorted.length;
-        uint256 size = limit == 0 || limit > len ? len : limit;
-
-        tokens = new address[](size);
-        symbols = new string[](size);
-        marketCaps = new uint256[](size);
-
-        unchecked {
-            for (uint256 i; i != size; ++i) {
-                address token = sorted[i];
-                tokens[i] = token;
-                symbols[i] = assets[token].symbol;
-
-                (uint256 price,) = checkPrice(token);
-                marketCaps[i] = price * _totalSupply(token);
-            }
         }
     }
 

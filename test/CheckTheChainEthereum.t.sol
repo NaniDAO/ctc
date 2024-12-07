@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.19;
 
-import {CheckTheChain} from "../src/CheckTheChain.sol";
+import {CheckTheChainEthereum} from "../src/CheckTheChainEthereum.sol";
 import {Test} from "../lib/forge-std/src/Test.sol";
 import {console} from "forge-std/console.sol";
 
 contract CheckTheChainTest is Test {
-    CheckTheChain internal ctc;
+    CheckTheChainEthereum internal ctc;
 
     address constant ORIGIN = 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
 
@@ -18,7 +18,7 @@ contract CheckTheChainTest is Test {
 
     function setUp() public payable {
         vm.createSelectFork(vm.rpcUrl("main"));
-        ctc = new CheckTheChain();
+        ctc = new CheckTheChainEthereum();
     }
 
     function testCheckPriceWETH() public payable {
@@ -96,6 +96,13 @@ contract CheckTheChainTest is Test {
             ctc.checkPrice(0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2);
         console.log("MKR Price in USDC: ", price);
         console.log("MKR Price String: ", strPrice);
+    }
+
+    function testCheckPriceWBTC() public payable {
+        (uint256 price, string memory strPrice) =
+            ctc.checkPrice(0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599);
+        console.log("WBTC Price in USDC: ", price);
+        console.log("WBTC Price String: ", strPrice);
     }
 
     function testRegisterToken() public {
@@ -194,6 +201,7 @@ contract CheckTheChainTest is Test {
             console.log("ENS Name:", ensName);
             console.log("Resolved Owner Address:", _owner);
             console.log("Resolved Receiver Address:", receiver);
+            node = node;
         } catch (bytes memory reason) {
             console.log("Failed to resolve ENS name:", string(reason));
         }

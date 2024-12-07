@@ -5,7 +5,7 @@ import {MetadataReaderLib} from "@solady/src/utils/MetadataReaderLib.sol";
 
 /// @notice Check the chain price of liquid tokens. Uses UniswapV3 pools.
 /// @dev `prices` are in terms of USDC or ETH. `priceStr` is formatted for UIs.
-contract CheckTheChain {
+contract CheckTheChainEthereum {
     using MetadataReaderLib for address;
 
     event Registered(address indexed token);
@@ -60,9 +60,7 @@ contract CheckTheChain {
         VALID
     }
 
-    error InvalidReceiver();
-
-    /// @dev Constructs this IE on Ethereum with ENS `ASCII_MAP`.
+    /// @dev Constructs this CTC on Ethereum with ENS `ASCII_MAP`.
     constructor() payable {
         unchecked {
             for (uint256 i; i != ASCII_MAP.length; i += 2) {
@@ -369,14 +367,20 @@ contract CheckTheChain {
         }
     }
 
-    /// @dev Returns the total supply of ERC20 `token`.
-    function _totalSupply(address token) internal view returns (uint256 supply) {
+    error TotalSupplyQueryFailed();
+
+    /// @dev Returns the total supply of the `token`. From the Solady STL.
+    /// Reverts if the token does not exist or does not implement `totalSupply()`.
+    function _totalSupply(address token) internal view returns (uint256 result) {
         assembly ("memory-safe") {
             mstore(0x00, 0x18160ddd) // `totalSupply()`.
-            if iszero(staticcall(gas(), token, 0x1c, 0x04, 0x20, 0x20)) {
-                revert(codesize(), codesize())
+            if iszero(
+                and(gt(returndatasize(), 0x1f), staticcall(gas(), token, 0x1c, 0x04, 0x00, 0x20))
+            ) {
+                mstore(0x00, 0x54cd9435) // `TotalSupplyQueryFailed()`.
+                revert(0x1c, 0x04)
             }
-            supply := mload(0x20)
+            result := mload(0x00)
         }
     }
 
@@ -399,17 +403,16 @@ contract CheckTheChain {
         returns (uint256 supply, string memory supplyStr)
     {
         supply = _totalSupply(token);
-        uint8 decimals = token.readDecimals();
-        supplyStr = _convertWeiToString(supply, decimals);
+        supplyStr = _convertWeiToString(supply, token.readDecimals());
     }
 
+    error InvalidReceiver();
+
     /// @dev Returns ENS name ownership details.
-    /// note: The `receiver` should be already set,
-    /// or, the command should use the raw address.
-    function whatIsTheAddressOf(string memory name)
+    /// note: The `receiver` should be already set.
+    function whatIsTheAddressOf(string calldata name)
         public
         view
-        virtual
         returns (address _owner, address receiver, bytes32 node)
     {
         node = _namehash(name);
@@ -420,13 +423,13 @@ contract CheckTheChain {
     }
 
     /// @dev Returns ENS reverse name resolution details.
-    function whatIsTheNameOf(address user) public view virtual returns (string memory) {
+    function whatIsTheNameOf(address user) public view returns (string memory) {
         bytes32 node = ENS_REVERSE.node(user);
         return IENSHelper(ENS_REGISTRY.resolver(node)).name(node);
     }
 
     /// @dev Computes an ENS domain namehash.
-    function _namehash(string memory domain) internal view virtual returns (bytes32 node) {
+    function _namehash(string memory domain) internal view returns (bytes32 node) {
         // Process labels (in reverse order for namehash).
         uint256 i = bytes(domain).length;
         uint256 lastDot = i;
@@ -453,7 +456,6 @@ contract CheckTheChain {
     function _labelhash(string memory domain, uint256 start, uint256 end)
         internal
         pure
-        virtual
         returns (bytes32 hash)
     {
         assembly ("memory-safe") {

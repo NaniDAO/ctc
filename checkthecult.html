@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Check The Cult</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      .info-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 40px;
+        margin-top: 60px;
+      }
+
+
+      .info-text {
+        color: #888;
+        font-size: 14px;
+        text-align: center;
+        max-width: 600px;
+        line-height: 1.5;
+      }
+
+
+      .uniswap-section {
+        margin: 20px 0;
+      }
+
+
+      #wallet-section {
+        text-align: center;
+        margin-top: -40px;
+        margin-bottom: 60px;
+      }
+
+
+      #connect-wallet {
+        font-family: monospace;
+        color: white;
+        text-decoration: none;
+      }
+
+
+      #connect-wallet:hover {
+        text-decoration: underline wavy blue 2px;
+      }
+
+
+      .swap-container {
+        display: none;
+        margin-top: 10px;
+        text-align: center;
+        margin-bottom: 60px;
+      }
+
+
+      .input-wrapper {
+        display: inline-block;
+        padding: 2px;
+        background: linear-gradient(to right, #0066ff, #00ffff);
+        border-radius: 6px;
+      }
+
+
+      .swap-input {
+        background: #111;
+        border: none;
+        color: #ffd700;
+        padding: 12px;
+        width: 200px;
+        font-family: monospace;
+        font-size: 18px;
+        text-align: center;
+        border-radius: 4px;
+        outline: none;
+      }
+
+
+      .swap-input {
+        background: #111;
+        border: 1px solid #333;
+        color: #ffd700;
+        padding: 8px;
+        width: 200px;
+        font-family: monospace;
+        text-align: center;
+        border-radius: 4px;
+      }
+
+
+      .swap-button {
+        display: inline-block;
+        margin-top: 20px;
+        font-family: monospace;
+        color: white;
+        text-decoration: none;
+        padding: 8px 16px;
+        cursor: pointer;
+      }
+
+
+      .swap-button:hover {
+        text-decoration: underline wavy blue 2px;
+      }
+
+
+      /* For when the swap is processing */
+      .swap-button.processing {
+        color: #ffd700;
+        pointer-events: none;
+      }
+
+
+      .output-display {
+        margin-top: 20px;
+        color: #ff0000;
+        font-family: monospace;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+
+      .cult-mini-logo {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        vertical-align: middle;
+      }
+
+
+      .cult-text {
+        color: #ff0000;
+        font-family: monospace;
+      }
+
+
+      .estimated-output {
+        margin-top: 10px;
+        color: #ff0000;
+        font-family: monospace;
+      }
+
+
+      .swap-input::-webkit-outer-spin-button,
+      .swap-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .swap-input[type="number"] {
+        -moz-appearance: textfield;
+      }
+
+
+      body {
+        background-color: black;
+        color: white;
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        flex-direction: column;
+        position: relative;
+      }
+
+
+      .token-logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin-bottom: 20px;
+        border: 2px solid #ff0000;
+        box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+
+      .token-logo:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+      }
+
+
+      .tokens-container {
+        text-align: center;
+        margin: 40px 0;
+      }
+
+
+      .token-group {
+        margin: 20px 0;
+      }
+
+
+      .token-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        justify-content: center;
+      }
+
+
+      .token-name {
+        font-size: 24px;
+        width: 100px;
+        text-align: right;
+      }
+
+
+      .token-name.cult {
+        color: #ff0000;
+      }
+
+
+      #cult-price {
+        color: #ff0000;
+        font-weight: bold;
+      }
+
+
+      #cult-eth-price-usdc,
+      #cult-eth-price-eth,
+      #cult-eth-price-supply,
+      #cult-eth-price-marketcap {
+        color: #ff0000 !important;
+      }
+
+
+      .token-price {
+        font-size: 48px;
+        cursor: pointer;
+        text-align: left;
+        min-width: 200px;
+        transition: text-shadow 0.3s ease;
+      }
+
+
+      .token-price:hover {
+        text-shadow: 0 0 10px #ff0000;
+      }
+
+
+      #cult-price {
+        color: #ffd700;
+      }
+
+
+      .network-prices {
+        display: none;
+        background-color: #111;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 10px;
+        text-align: left;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+
+      .network-prices.active {
+        display: block;
+      }
+
+
+      .network-price {
+        margin: 20px 0;
+      }
+
+
+      .network-name {
+        color: #888;
+        margin-right: 20px;
+        display: block;
+        margin-bottom: 5px;
+      }
+
+
+      .network-name a:hover {
+        color: #ff0000;
+      }
+
+
+      .price-details {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-left: 20px;
+      }
+
+
+      .price-path {
+        color: #666;
+        font-size: 14px;
+        display: inline-block;
+        width: 70px;
+      }
+
+
+      .price-value {
+        color: #ff0000 !important;
+      }
+
+
+      .info-container {
+        text-align: center;
+        color: #888;
+        font-size: 14px;
+        margin: 80px 0 40px 0;
+        font-style: italic;
+      }
+
+
+      .info-container img {
+        height: 20px;
+        vertical-align: middle;
+      }
+
+
+      .contract-link {
+        color: #888;
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.3s ease;
+        margin-top: 10px;
+      }
+
+
+      .contract-link:hover {
+        color: #ff0000;
+      }
+
+
+      .icon-link {
+        position: fixed;
+        font-size: 18px;
+        color: white;
+        text-decoration: none;
+        z-index: 3;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 32px;
+        height: 32px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transition: background-color 0.3s ease;
+      }
+
+
+      .icon-link:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+
+
+      .icon-link svg {
+        width: 20px;
+        height: 20px;
+        fill: white;
+      }
+
+
+      #nani-link {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        font-size: 18px;
+        color: white;
+        text-decoration: none;
+        font-family: monospace;
+        z-index: 3;
+      }
+
+
+      #nani-link:hover {
+        text-decoration: underline wavy blue 2px;
+      }
+
+
+      #twitter-link {
+        top: 10px;
+        right: 10px;
+      }
+
+
+      #github-link {
+        bottom: 10px;
+        left: 10px;
+      }
+
+
+      #uniswap-command {
+        position: fixed !important;
+        bottom: 10px !important;
+        right: 10px !important;
+        color: rgba(255, 255, 255, 0.3);
+        text-decoration: none;
+        font-family: monospace;
+        font-size: 20px;
+        z-index: 9999;
+      }
+
+
+      #uniswap-command:hover {
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+
+      #uniswap-command .dollar {
+        opacity: 0.2;
+        font-size: 16px;
+      }
+
+
+      .network-name a {
+        color: #888;
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+
+      .network-name a:hover {
+        color: white;
+      }
+
+
+      @keyframes shake {
+        0% {
+          transform: translate(0, 0) rotate(0deg);
+        }
+        20% {
+          transform: translate(-2px, 0) rotate(-1deg);
+        }
+        40% {
+          transform: translate(2px, 0) rotate(1deg);
+        }
+        60% {
+          transform: translate(-2px, 0) rotate(-1deg);
+        }
+        80% {
+          transform: translate(2px, 0) rotate(1deg);
+        }
+        100% {
+          transform: translate(0, 0) rotate(0deg);
+        }
+      }
+
+
+      @keyframes glow {
+        0% {
+          text-shadow: 0 0 5px #ffd700;
+        }
+        50% {
+          text-shadow: 0 0 20px #ffd700, 0 0 30px #ff0000;
+        }
+        100% {
+          text-shadow: 0 0 5px #ffd700;
+        }
+      }
+
+
+      .price-update {
+        animation: shake 0.5s ease-in-out, glow 0.5s ease-in-out;
+      }
+
+
+      @media (max-width: 768px) {
+        .token-row {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+
+        .token-name {
+          text-align: center;
+          width: auto;
+        }
+
+
+        .token-price {
+          color: #ff0000;
+        }
+
+
+        .price-value::before {
+          color: #ff0000;
+        }
+
+
+        .network-prices {
+          width: 90%;
+          margin: 10px auto;
+        }
+
+
+        .price-details {
+          flex-direction: column;
+          gap: 5px;
+        }
+
+
+        .info-container {
+          flex-direction: column;
+          padding: 0 20px;
+        }
+
+
+        .uniswap-logo {
+          width: 16px !important;
+          height: 16px !important;
+          opacity: 0.6;
+          transition: opacity 0.3s ease;
+          display: block;
+          margin: 20px auto;
+        }
+
+
+        .uniswap-link {
+          display: block;
+          text-align: center;
+          margin: 20px auto;
+          padding: 5px;
+          cursor: pointer;
+        }
+
+
+        .uniswap-logo:hover {
+          opacity: 1;
+        }
+
+
+        .contract-section {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
+          opacity: 0.6;
+        }
+
+
+        .contract-link {
+          display: block;
+          text-align: center;
+          color: #888;
+          text-decoration: none;
+          font-size: 14px;
+          margin: 10px 0;
+          font-family: monospace;
+        }
+
+
+        .contract-link:hover {
+          color: #ff0000;
+        }
+
+
+        .ens-name {
+          color: #fff;
+          font-family: monospace;
+          margin-top: 10px;
+        }
+
+
+        p {
+          text-align: center;
+          color: white;
+          font-family: monospace;
+          margin: 10px 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a href="https://nani.ooo/" id="nani-link" target="_blank"
+      >&#8984; nani os</a
+    >
+
+
+    <a
+      href="https://x.com/nani__ooo"
+      id="twitter-link"
+      class="icon-link"
+      target="_blank"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1227">
+        <path
+          d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z"
+        />
+      </svg>
+    </a>
+
+
+    <a
+      href="https://github.com/NaniDAO/ctc"
+      id="github-link"
+      class="icon-link"
+      target="_blank"
+    >
+      <svg height="32" viewBox="0 0 16 16" width="32">
+        <path
+          fill-rule="evenodd"
+          d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+        ></path>
+      </svg>
+    </a>
+
+
+    <div class="tokens-container">
+      <div class="token-group">
+        <a href="https://cult.inc/" target="_blank">
+          <img
+            src="https://assets.coingecko.com/coins/images/52583/standard/cult.jpg?1733712273"
+            alt="CULT Logo"
+            class="token-logo"
+          />
+        </a>
+        <div class="token-row">
+          <div class="token-name cult">CULT</div>
+          <div class="token-price" id="cult-price">$--.--.--</div>
+        </div>
+        <div class="network-prices" id="cult-networks">
+          <div class="network-price">
+            <span class="network-name">Ethereum</span>
+            <div class="price-details" id="cult-eth-price">
+              <div>
+                <span class="price-path">USDC:</span>
+                <span class="price-value" id="cult-eth-price-usdc"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">ETH:</span>
+                <span class="price-value" id="cult-eth-price-eth"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">Supply:</span>
+                <span class="price-value" id="cult-eth-price-supply"
+                  >--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">MarketCap:</span>
+                <span class="price-value" id="cult-eth-price-marketcap"
+                  >$--.--.--</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="wallet-section" style="text-align: center; margin-top: 20px">
+      <a
+        href="#"
+        id="connect-wallet"
+        style="font-family: monospace; text-decoration: none; color: white"
+      >
+        connect wallet
+      </a>
+    </div>
+    <div id="swap-container" class="swap-container">
+      <div class="input-wrapper">
+        <input
+          type="number"
+          class="swap-input"
+          id="eth-input"
+          placeholder="ETH Amount"
+          step="0.001"
+          min="0"
+        />
+      </div>
+      <div class="output-display">
+        <div id="cult-output">0</div>
+        <img
+          src="https://assets.coingecko.com/coins/images/52583/standard/cult.jpg?1733712273"
+          alt="CULT"
+          class="cult-mini-logo"
+        />
+        <span class="cult-text">CULT</span>
+      </div>
+      <a href="#" id="swap-button" class="swap-button">swap</a>
+    </div>
+
+
+    <a
+      href="https://docs.uniswap.org/sdk/v3/guides/advanced/price-oracle"
+      target="_blank"
+      style="text-decoration: none"
+    >
+      <img
+        src="https://github.com/Uniswap/brand-assets/raw/main/Uniswap%20Brand%20Assets/Uniswap_icon_pink.svg"
+        alt="Uniswap logo"
+        class="uniswap-logo"
+        width="16"
+        height="16"
+      />
+    </a>
+
+
+    <a
+      href="https://etherscan.io/address/0x0000000000cDC1F8d393415455E382c30FBc0a84"
+      target="_blank"
+      class="contract-link"
+    >
+      0x0000000000cDC1F8d393415455E382c30FBc0a84
+    </a>
+    <a
+      href="https://etherscan.io/address/0x570754Ab7Ca8A1cc1192423998bdb6CF8ED4d1bF"
+      target="_blank"
+      class="contract-link"
+    >
+      0x570754Ab7Ca8A1cc1192423998bdb6CF8ED4d1bF
+    </a>
+    <p>joincult.eth</p>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.umd.min.js"></script>
+
+
+    <script>
+      const CONTRACT_ADDRESS = "0x0000000000cDC1F8d393415455E382c30FBc0a84";
+      const OCULT_ADDRESS = "0x570754Ab7Ca8A1cc1192423998bdb6CF8ED4d1bF";
+      const CONTRACT_ABI = [
+        "function checkPriceInETHToUSDC(string) view returns (uint256, string)",
+        "function checkPriceInETH(string) view returns (uint256, string)",
+        "function addresses(string) view returns (address)",
+        "function totalSupply(address) view returns (uint256, string)",
+      ];
+      const OCULT_ABI = [
+        "function milady(address to, int256 amount) public payable",
+      ];
+
+
+      const RPC_URLS = {
+        ethereum: [
+          "https://eth-mainnet.public.blastapi.io",
+          "https://eth.llamarpc.com",
+          "https://rpc.ankr.com/eth",
+          "https://ethereum-rpc.publicnode.com",
+        ],
+      };
+
+
+      const NETWORKS = {
+        ethereum: {
+          rpc: RPC_URLS.ethereum,
+          elementId: "eth-price",
+        },
+      };
+
+
+      let userAccount = null;
+      let provider = null;
+      let signer = null;
+
+
+      async function connectWallet() {
+        try {
+          if (typeof window.ethereum !== "undefined") {
+            provider = new ethers.BrowserProvider(window.ethereum);
+            const accounts = await provider.send("eth_requestAccounts", []);
+            userAccount = accounts[0];
+            signer = await provider.getSigner();
+
+
+            const connectButton = document.getElementById("connect-wallet");
+            const swapContainer = document.getElementById("swap-container");
+            const ethInput = document.getElementById("eth-input");
+
+
+            if (connectButton) connectButton.style.display = "none";
+
+
+            // Create and insert wallet address display
+            const walletDisplay = document.createElement("div");
+            walletDisplay.className = "wallet-display"; // Add class for easy selection
+            walletDisplay.style.color = "#888";
+            walletDisplay.style.fontFamily = "monospace";
+            walletDisplay.style.fontSize = "14px";
+            walletDisplay.style.marginBottom = "20px";
+            walletDisplay.textContent = `${userAccount.slice(
+              0,
+              6
+            )}...${userAccount.slice(-4)}`;
+
+
+            if (swapContainer) {
+              swapContainer.parentNode.insertBefore(
+                walletDisplay,
+                swapContainer
+              );
+              swapContainer.style.display = "block";
+            }
+
+
+            if (ethInput) {
+              ethInput.value = "0.01";
+              ethInput.addEventListener("input", updateEstimate);
+              updateEstimate({ target: ethInput });
+            }
+
+
+            // Setup wallet change listeners
+            setupWalletListeners();
+          } else {
+            alert("Please install MetaMask or use a Web3-enabled browser");
+          }
+        } catch (error) {
+          console.error("Error connecting wallet:", error);
+        }
+      }
+
+
+      async function setupWalletListeners() {
+        if (window.ethereum) {
+          window.ethereum.on("accountsChanged", handleAccountChange);
+        }
+      }
+
+
+      // Handle account changes
+      async function handleAccountChange(accounts) {
+        if (accounts.length === 0) {
+          // User disconnected wallet
+          location.reload(); // Simple reload to reset state
+        } else {
+          // Update to new account
+          userAccount = accounts[0];
+          signer = await provider.getSigner();
+          updateWalletDisplay(userAccount);
+        }
+      }
+
+
+      // Update wallet display function
+      function updateWalletDisplay(address) {
+        const existingWalletDisplay = document.querySelector(".wallet-display");
+        const truncatedAddress = `${address.slice(0, 6)}...${address.slice(
+          -4
+        )}`;
+
+
+        if (existingWalletDisplay) {
+          existingWalletDisplay.textContent = truncatedAddress;
+        }
+      }
+
+
+      async function updateEstimate(e) {
+        const ethAmount = parseFloat(e.target.value);
+        if (isNaN(ethAmount)) {
+          document.getElementById("cult-output").textContent = "0";
+          return;
+        }
+
+
+        const ethPrice = prices.CULT.networks.ethereum.eth;
+        const cultAmount = ethAmount / ethPrice;
+
+
+        // Match 1.5% slippage in display
+        const estimatedOutput = cultAmount * 0.985;
+
+
+        const outputElement = document.getElementById("cult-output");
+        if (outputElement) {
+          outputElement.innerHTML = `
+            <span style="color: #888">${cultAmount.toFixed(2)}</span>
+            <span style="color: #ff0000"> (min: ${estimatedOutput.toFixed(
+              2
+            )})</span>
+        `;
+        }
+      }
+
+
+      document
+        .getElementById("eth-input")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            executeMiladySwap();
+          }
+        });
+
+
+      document
+        .getElementById("swap-button")
+        .addEventListener("click", function (e) {
+          e.preventDefault();
+          executeMiladySwap();
+        });
+
+
+      async function executeMiladySwap() {
+        const swapButton = document.getElementById("swap-button");
+        const ethInput = document.getElementById("eth-input");
+        const ethAmount = parseFloat(ethInput.value);
+
+
+        if (isNaN(ethAmount) || ethAmount <= 0) {
+          alert("Please enter a valid ETH amount");
+          return;
+        }
+
+
+        try {
+          swapButton.textContent = "swapping...";
+          swapButton.classList.add("processing");
+          ethInput.disabled = true;
+
+
+          const contract = new ethers.Contract(
+            OCULT_ADDRESS,
+            OCULT_ABI,
+            signer
+          );
+          const ethPrice = prices.CULT.networks.ethereum.eth;
+          const cultAmount = ethAmount / ethPrice;
+
+
+          const amountWithBuffer = Math.floor(cultAmount * 0.985);
+
+
+          const negativeAmountBigInt = ethers.parseUnits(
+            (-amountWithBuffer).toString(),
+            18
+          );
+
+
+          const tx = await contract.milady(userAccount, negativeAmountBigInt, {
+            value: ethers.parseEther(ethAmount.toString()),
+            gasLimit: 300000,
+            maxPriorityFeePerGas: ethers.parseUnits("2", "gwei"),
+          });
+
+
+          swapButton.textContent = "confirming...";
+          await tx.wait();
+
+
+          swapButton.textContent = "swap";
+          swapButton.classList.remove("processing");
+          ethInput.disabled = false;
+          ethInput.value = "";
+          document.getElementById("cult-output").textContent = "0";
+
+
+          // Create and show Etherscan link
+          const etherscanLink = `https://etherscan.io/tx/${tx.hash}`;
+          alert(`Swap successful! View transaction: ${etherscanLink}`);
+
+
+          // Optional: Create a clickable link that stays on the page
+          const txLink = document.createElement("a");
+          txLink.href = etherscanLink;
+          txLink.target = "_blank";
+          txLink.style.color = "#888";
+          txLink.style.display = "block";
+          txLink.style.marginTop = "10px";
+          txLink.style.fontSize = "12px";
+          txLink.style.fontFamily = "monospace";
+          txLink.textContent = `View tx: ${tx.hash.slice(
+            0,
+            6
+          )}...${tx.hash.slice(-4)}`;
+
+
+          // Insert the link below the swap button
+          const swapContainer = document.getElementById("swap-container");
+          swapContainer.appendChild(txLink);
+
+
+          // Remove the link after 30 seconds
+          setTimeout(() => {
+            if (txLink.parentNode) {
+              txLink.parentNode.removeChild(txLink);
+            }
+          }, 30000);
+        } catch (error) {
+          console.error("Swap failed:", error);
+          alert("Swap failed. Please try again with a different amount.");
+
+
+          swapButton.textContent = "swap";
+          swapButton.classList.remove("processing");
+          ethInput.disabled = false;
+        }
+      }
+
+
+      async function updateEstimate(e) {
+        const ethAmount = parseFloat(e.target.value);
+        if (isNaN(ethAmount)) {
+          document.getElementById("cult-output").textContent = "0";
+          return;
+        }
+
+
+        const ethPrice = prices.CULT.networks.ethereum.eth;
+        const cultAmount = ethAmount / ethPrice;
+
+
+        // This is the exact amount they'll receive
+        const exactOutput = cultAmount * 0.985; // 1.5% buffer applied
+
+
+        const outputElement = document.getElementById("cult-output");
+        if (outputElement) {
+          outputElement.textContent = `${exactOutput.toFixed(2)} CULT`;
+        }
+      }
+
+
+      async function getWorkingProvider(rpcs) {
+        for (const rpc of rpcs) {
+          try {
+            const provider = new ethers.JsonRpcProvider(rpc);
+            await provider.getBlockNumber(); // Test call.
+            return provider;
+          } catch (e) {
+            console.log(`RPC ${rpc} failed, trying next...`);
+            continue;
+          }
+        }
+        throw new Error("No working RPC found");
+      }
+
+
+      const TOKENS = ["CULT"];
+      const prices = {
+        CULT: { networks: {}, averages: {} },
+      };
+
+
+      const BLOCK_EXPLORERS = {
+        ethereum: "https://etherscan.io/token/",
+      };
+
+
+      function truncateAddress(address) {
+        return `${address.slice(0, 6)}...${address.slice(-4)}`;
+      }
+
+
+      function formatMarketCap(number) {
+        if (number >= 1e9) {
+          return `$${(number / 1e9).toFixed(2)}B`;
+        } else if (number >= 1e6) {
+          return `$${(number / 1e6).toFixed(2)}M`;
+        } else {
+          return `$${number.toFixed(2)}`;
+        }
+      }
+
+
+      async function getPrice(token, network, rpcs) {
+        try {
+          const provider = await getWorkingProvider(rpcs);
+          const contract = new ethers.Contract(
+            CONTRACT_ADDRESS,
+            CONTRACT_ABI,
+            provider
+          );
+
+
+          // Get token address for this symbol
+          const tokenAddress = await contract.addresses(token);
+
+
+          // Set up network link only once
+          setupNetworkLinks(token, network, tokenAddress);
+
+
+          // Get formatted supply string
+          const [_, supplyStr] = await contract["totalSupply(address)"](
+            tokenAddress
+          );
+          const supply = parseFloat(supplyStr);
+
+
+          // Update supply UI
+          document.getElementById(
+            `${token.toLowerCase()}-${NETWORKS[network].elementId}-supply`
+          ).textContent = supplyStr;
+
+
+          // Get price data
+          const [__, usdcPriceStr] = await contract[
+            "checkPriceInETHToUSDC(string)"
+          ](token);
+          const [___, ethPriceStr] = await contract["checkPriceInETH(string)"](
+            token
+          );
+
+
+          const usdcPrice = parseFloat(usdcPriceStr);
+          const ethPrice = parseFloat(ethPriceStr);
+
+
+          prices[token].networks[network] = {
+            usdc: usdcPrice,
+            eth: ethPrice,
+          };
+          prices[token].averages[network] = usdcPrice;
+
+
+          // Calculate market cap using USDC price
+          const marketcap = usdcPrice * supply;
+
+
+          // Update UI elements
+          document.getElementById(
+            `${token.toLowerCase()}-${NETWORKS[network].elementId}-usdc`
+          ).textContent = `$${usdcPrice.toFixed(6)}`;
+          document.getElementById(
+            `${token.toLowerCase()}-${NETWORKS[network].elementId}-eth`
+          ).textContent = `${ethPrice.toFixed(12)}`;
+          document.getElementById(
+            `${token.toLowerCase()}-${NETWORKS[network].elementId}-marketcap`
+          ).textContent = formatMarketCap(marketcap);
+
+
+          updateAveragePrice(token);
+        } catch (error) {
+          console.error(`Error fetching ${token} data on ${network}:`, error);
+          document.getElementById(
+            `${token.toLowerCase()}-${NETWORKS[network].elementId}-usdc`
+          ).textContent = "Error";
+          document.getElementById(
+            `${token.toLowerCase()}-${NETWORKS[network].elementId}-eth`
+          ).textContent = "Error";
+          document.getElementById(
+            `${token.toLowerCase()}-${NETWORKS[network].elementId}-marketcap`
+          ).textContent = "Error";
+        }
+      }
+
+
+      function updatePriceWithEffect(elementId, newValue) {
+        const element = document.getElementById(elementId);
+        element.textContent = newValue;
+        element.classList.remove("price-update");
+        // Trigger reflow
+        void element.offsetWidth;
+        element.classList.add("price-update");
+      }
+
+
+      function setupNetworkLinks(token, network, tokenAddress) {
+        const networkElement = document.getElementById(
+          `${token.toLowerCase()}-${NETWORKS[network].elementId}`
+        ).previousElementSibling;
+
+
+        if (!networkElement.hasAttribute("data-address-set")) {
+          networkElement.innerHTML = `<a href="${
+            BLOCK_EXPLORERS[network]
+          }${tokenAddress}" 
+      target="_blank" 
+      style="color: #888; text-decoration: none;">
+      ${
+        networkElement.textContent
+      } <span style="opacity: 0.5; font-family: monospace; font-size: 0.9em;">${truncateAddress(
+            tokenAddress
+          )}</span>
+    </a>`;
+          networkElement.setAttribute("data-address-set", "true");
+        }
+      }
+
+
+      function updateAveragePrice(token) {
+        const validAverages = Object.values(prices[token].averages).filter(
+          (p) => !isNaN(p)
+        );
+        if (validAverages.length > 0) {
+          const totalAverage =
+            validAverages.reduce((a, b) => a + b) / validAverages.length;
+          updatePriceWithEffect(
+            `${token.toLowerCase()}-price`,
+            `$${totalAverage.toFixed(6)}`
+          );
+        }
+      }
+
+
+      async function updateAllPrices() {
+        for (const token of TOKENS) {
+          for (const [network, config] of Object.entries(NETWORKS)) {
+            getPrice(token, network, config.rpc);
+          }
+        }
+      }
+
+
+      // Add at the end of your script
+      document.addEventListener("DOMContentLoaded", () => {
+        const connectButton = document.getElementById("connect-wallet");
+        if (connectButton) {
+          connectButton.addEventListener("click", (e) => {
+            e.preventDefault();
+            connectWallet();
+          });
+        }
+      });
+
+
+      // Setup click listeners for dropdowns.
+      TOKENS.forEach((token) => {
+        document
+          .getElementById(`${token.toLowerCase()}-price`)
+          .addEventListener("click", () => {
+            document
+              .getElementById(`${token.toLowerCase()}-networks`)
+              .classList.toggle("active");
+          });
+      });
+
+
+      // Initial price fetch and setup interval.
+      updateAllPrices();
+      setInterval(updateAllPrices, 5000);
+    </script>
+    <a
+      href="https://app.uniswap.org/swap?chain=mainnet&inputCurrency=NATIVE&outputCurrency=0x00000000000007c8612ba63df8ddefd9e6077c97&value=0.015&field=input"
+      id="uniswap-command"
+      target="_blank"
+    >
+      <span class="dollar">$</span>&#8984;
+    </a>
+  </body>
+</html>

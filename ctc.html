@@ -1,0 +1,1474 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Check The Chain</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        background-color: black;
+        color: white;
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        flex-direction: column;
+        position: relative;
+      }
+
+
+      .tokens-container {
+        text-align: center;
+        margin: 40px 0;
+      }
+
+
+      .token-group {
+        margin: 20px 0;
+      }
+
+
+      .token-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        justify-content: center;
+      }
+
+
+      .token-name {
+        font-size: 24px;
+        width: 100px;
+        text-align: right;
+      }
+
+
+      .token-name.cbbtc {
+        color: #ff9500;
+      }
+      .token-name.weth {
+        color: #627eea;
+      }
+      .token-name.uni {
+        color: #ff007a;
+      }
+      .token-name.ens {
+        color: #68c7f4;
+      }
+
+
+      .token-price {
+        font-size: 48px;
+        cursor: pointer;
+        text-align: left;
+        min-width: 200px;
+        transition: text-shadow 0.3s ease;
+      }
+
+
+      .token-price:hover {
+        text-shadow: 0 0 10px currentColor;
+      }
+
+
+      #cbbtc-price {
+        color: #ff9500;
+      }
+      #weth-price {
+        color: #627eea;
+      }
+      #uni-price {
+        color: #ff007a;
+      }
+      #ens-price {
+        color: #68c7f4;
+      }
+
+
+      .network-prices {
+        display: none;
+        background-color: #111;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 10px;
+        text-align: left;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+
+      .network-prices.active {
+        display: block;
+      }
+
+
+      .network-price {
+        margin: 20px 0;
+      }
+
+
+      .network-name {
+        color: #888;
+        margin-right: 20px;
+        display: block;
+        margin-bottom: 5px;
+      }
+
+
+      .price-details {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-left: 20px;
+      }
+
+
+      .price-path {
+        color: #666;
+        font-size: 14px;
+        display: inline-block;
+        width: 70px;
+      }
+
+
+      .price-value {
+        color: white;
+        word-break: break-all;
+        padding-left: 10px;
+      }
+
+
+      .info-container {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #888;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: center;
+      }
+
+
+      .info-container img {
+        height: 20px;
+        vertical-align: middle;
+      }
+
+
+      .contract-link {
+        color: #888;
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.3s ease;
+        margin-top: 10px;
+      }
+
+
+      .contract-link:hover {
+        color: white;
+      }
+
+
+      .icon-link {
+        position: fixed;
+        font-size: 18px;
+        color: white;
+        text-decoration: none;
+        z-index: 3;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 32px;
+        height: 32px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        transition: background-color 0.3s ease;
+      }
+
+
+      .icon-link:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+      }
+
+
+      .icon-link svg {
+        width: 20px;
+        height: 20px;
+        fill: white;
+      }
+
+
+      #nani-link {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        font-size: 18px;
+        color: white;
+        text-decoration: none;
+        font-family: monospace;
+        z-index: 3;
+      }
+
+
+      #nani-link:hover {
+        text-decoration: underline wavy blue 2px;
+      }
+
+
+      #twitter-link {
+        top: 10px;
+        right: 10px;
+      }
+
+
+      #github-link {
+        bottom: 10px;
+        left: 10px;
+      }
+
+
+      #uniswap-command {
+        position: fixed !important;
+        bottom: 10px !important;
+        right: 10px !important;
+        color: rgba(255, 255, 255, 0.3);
+        text-decoration: none;
+        font-family: monospace;
+        font-size: 20px;
+        z-index: 9999;
+      }
+
+
+      #uniswap-command:hover {
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+
+      #uniswap-command .dollar {
+        opacity: 0.2;
+        font-size: 16px;
+      }
+
+
+      .network-name a {
+        color: #888;
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+
+      .network-name a:hover {
+        color: white;
+      }
+
+
+      .custom-token-section {
+        margin-top: 30px;
+        border-top: 1px solid #333;
+        padding-top: 20px;
+      }
+
+
+      .input-container {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+
+      #token-address {
+        flex: 1;
+        background: #1a1a1a;
+        border: 1px solid #333;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+      }
+
+
+      #fetch-token {
+        background: #2c2c2c;
+        border: 1px solid #444;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+
+      #fetch-token:hover {
+        background: #383838;
+      }
+
+
+      .custom-token {
+        color: #9966ff; /* Purple color for custom tokens */
+      }
+
+
+      @media (max-width: 768px) {
+        .token-row {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+
+        .token-name {
+          text-align: center;
+          width: auto;
+        }
+
+
+        .token-price {
+          font-size: 36px;
+          min-width: unset;
+          text-align: center;
+        }
+
+
+        .network-prices {
+          width: 90%;
+          margin: 10px auto;
+        }
+
+
+        .price-details {
+          flex-direction: column;
+          gap: 5px;
+        }
+
+
+        .info-container {
+          flex-direction: column;
+          padding: 0 20px;
+        }
+
+
+        .uniswap-logo {
+          height: 16px !important;
+          width: 16px !important;
+          max-height: 16px !important;
+          max-width: 16px !important;
+          object-fit: contain;
+          transition: transform 0.3s ease;
+        }
+
+
+        .uniswap-link {
+          display: block;
+          text-align: center;
+          margin: 20px auto;
+          padding: 5px;
+          cursor: pointer;
+        }
+
+
+        .uniswap-logo:hover {
+          transform: scale(1.1);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a href="https://nani.ooo/" id="nani-link" target="_blank"
+      >&#8984; nani os</a
+    >
+
+
+    <a
+      href="https://x.com/nani__ooo"
+      id="twitter-link"
+      class="icon-link"
+      target="_blank"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1227">
+        <path
+          d="M714.163 519.284L1160.89 0H1055.03L667.137 450.887L357.328 0H0L468.492 681.821L0 1226.37H105.866L515.491 750.218L842.672 1226.37H1200L714.137 519.284H714.163ZM569.165 687.828L521.697 619.934L144.011 79.6944H306.615L611.412 515.685L658.88 583.579L1055.08 1150.3H892.476L569.165 687.854V687.828Z"
+        />
+      </svg>
+    </a>
+
+
+    <a
+      href="https://github.com/NaniDAO/ctc"
+      id="github-link"
+      class="icon-link"
+      target="_blank"
+    >
+      <svg height="32" viewBox="0 0 16 16" width="32">
+        <path
+          fill-rule="evenodd"
+          d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+        ></path>
+      </svg>
+    </a>
+
+
+    <div class="tokens-container">
+      <div class="token-group">
+        <div class="token-row">
+          <div class="token-name cbbtc">cbBTC</div>
+          <div class="token-price" id="cbbtc-price">$--.--.--</div>
+        </div>
+        <div class="network-prices" id="cbbtc-networks">
+          <div class="network-price">
+            <span class="network-name">Ethereum</span>
+            <div class="price-details" id="cbbtc-eth-price">
+              <div>
+                <span class="price-path">USDC:</span>
+                <span class="price-value" id="cbbtc-eth-price-usdc"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">ETH:</span>
+                <span class="price-value" id="cbbtc-eth-price-eth"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">Supply:</span>
+                <span class="price-value" id="cbbtc-eth-price-supply"
+                  >--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">MarketCap:</span>
+                <span class="price-value" id="cbbtc-eth-price-marketcap"
+                  >$--.--.--</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="network-price">
+            <span class="network-name">Arbitrum</span>
+            <div class="price-details" id="cbbtc-arb-price">
+              <div>
+                <span class="price-path">USDC:</span>
+                <span class="price-value" id="cbbtc-arb-price-usdc"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">ETH:</span>
+                <span class="price-value" id="cbbtc-arb-price-eth"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">Supply:</span>
+                <span class="price-value" id="cbbtc-arb-price-supply"
+                  >--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">MarketCap:</span>
+                <span class="price-value" id="cbbtc-arb-price-marketcap"
+                  >$--.--.--</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="network-price">
+            <span class="network-name">Base</span>
+            <div class="price-details" id="cbbtc-base-price">
+              <div>
+                <span class="price-path">USDC:</span>
+                <span class="price-value" id="cbbtc-base-price-usdc"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">ETH:</span>
+                <span class="price-value" id="cbbtc-base-price-eth"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">Supply:</span>
+                <span class="price-value" id="cbbtc-base-price-supply"
+                  >--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">MarketCap:</span>
+                <span class="price-value" id="cbbtc-base-price-marketcap"
+                  >$--.--.--</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="token-group">
+        <div class="token-row">
+          <div class="token-name weth">WETH</div>
+          <div class="token-price" id="weth-price">$--.--.--</div>
+        </div>
+        <div class="network-prices" id="weth-networks">
+          <div class="network-price">
+            <span class="network-name">Ethereum</span>
+            <div class="price-details" id="weth-eth-price">
+              <div>
+                <span class="price-path">USDC:</span>
+                <span class="price-value" id="weth-eth-price-usdc"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">ETH:</span>
+                <span class="price-value" id="weth-eth-price-eth">1.0000</span>
+              </div>
+              <div>
+                <span class="price-path">Supply:</span>
+                <span class="price-value" id="weth-eth-price-supply"
+                  >--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">MarketCap:</span>
+                <span class="price-value" id="weth-eth-price-marketcap"
+                  >$--.--.--</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="network-price">
+            <span class="network-name">Optimism</span>
+            <div class="price-details" id="weth-op-price">
+              <div>
+                <span class="price-path">USDC:</span>
+                <span class="price-value" id="weth-op-price-usdc"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">ETH:</span>
+                <span class="price-value" id="weth-op-price-eth">1.0000</span>
+              </div>
+              <div>
+                <span class="price-path">Supply:</span>
+                <span class="price-value" id="weth-op-price-supply"
+                  >--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">MarketCap:</span>
+                <span class="price-value" id="weth-op-price-marketcap"
+                  >$--.--.--</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="network-price">
+            <span class="network-name">Arbitrum</span>
+            <div class="price-details" id="weth-arb-price">
+              <div>
+                <span class="price-path">USDC:</span>
+                <span class="price-value" id="weth-arb-price-usdc"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">ETH:</span>
+                <span class="price-value" id="weth-arb-price-eth">1.0000</span>
+              </div>
+              <div>
+                <span class="price-path">Supply:</span>
+                <span class="price-value" id="weth-arb-price-supply"
+                  >--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">MarketCap:</span>
+                <span class="price-value" id="weth-arb-price-marketcap"
+                  >$--.--.--</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="network-price">
+            <span class="network-name">Polygon</span>
+            <div class="price-details" id="weth-poly-price">
+              <div>
+                <span class="price-path">USDC:</span>
+                <span class="price-value" id="weth-poly-price-usdc"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">ETH:</span>
+                <span class="price-value" id="weth-poly-price-eth">1.0000</span>
+              </div>
+              <div>
+                <span class="price-path">Supply:</span>
+                <span class="price-value" id="weth-poly-price-supply"
+                  >--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">MarketCap:</span>
+                <span class="price-value" id="weth-poly-price-marketcap"
+                  >$--.--.--</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="network-price">
+            <span class="network-name">Base</span>
+            <div class="price-details" id="weth-base-price">
+              <div>
+                <span class="price-path">USDC:</span>
+                <span class="price-value" id="weth-base-price-usdc"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">ETH:</span>
+                <span class="price-value" id="weth-base-price-eth">1.0000</span>
+              </div>
+              <div>
+                <span class="price-path">Supply:</span>
+                <span class="price-value" id="weth-base-price-supply"
+                  >--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">MarketCap:</span>
+                <span class="price-value" id="weth-base-price-marketcap"
+                  >$--.--.--</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="token-group">
+        <div class="token-row">
+          <div class="token-name uni">UNI</div>
+          <div class="token-price" id="uni-price">$--.--.--</div>
+        </div>
+        <div class="network-prices" id="uni-networks">
+          <div class="network-price">
+            <span class="network-name">Ethereum</span>
+            <div class="price-details" id="uni-eth-price">
+              <div>
+                <span class="price-path">USDC:</span>
+                <span class="price-value" id="uni-eth-price-usdc"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">ETH:</span>
+                <span class="price-value" id="uni-eth-price-eth"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">Supply:</span>
+                <span class="price-value" id="uni-eth-price-supply"
+                  >--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">MarketCap:</span>
+                <span class="price-value" id="uni-eth-price-marketcap"
+                  >$--.--.--</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="network-price">
+            <span class="network-name">Optimism</span>
+            <div class="price-details" id="uni-op-price">
+              <div>
+                <span class="price-path">USDC:</span>
+                <span class="price-value" id="uni-op-price-usdc"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">ETH:</span>
+                <span class="price-value" id="uni-op-price-eth">$--.--.--</span>
+              </div>
+              <div>
+                <span class="price-path">Supply:</span>
+                <span class="price-value" id="uni-op-price-supply"
+                  >--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">MarketCap:</span>
+                <span class="price-value" id="uni-op-price-marketcap"
+                  >$--.--.--</span
+                >
+              </div>
+            </div>
+          </div>
+
+
+          <div class="network-price">
+            <span class="network-name">Arbitrum</span>
+            <div class="price-details" id="uni-arb-price">
+              <div>
+                <span class="price-path">USDC:</span>
+                <span class="price-value" id="uni-arb-price-usdc"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">ETH:</span>
+                <span class="price-value" id="uni-arb-price-eth"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">Supply:</span>
+                <span class="price-value" id="uni-arb-price-supply"
+                  >--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">MarketCap:</span>
+                <span class="price-value" id="uni-arb-price-marketcap"
+                  >$--.--.--</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="network-price">
+            <span class="network-name">Polygon</span>
+            <div class="price-details" id="uni-poly-price">
+              <div>
+                <span class="price-path">USDC:</span>
+                <span class="price-value" id="uni-poly-price-usdc"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">ETH:</span>
+                <span class="price-value" id="uni-poly-price-eth"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">Supply:</span>
+                <span class="price-value" id="uni-poly-price-supply"
+                  >--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">MarketCap:</span>
+                <span class="price-value" id="uni-poly-price-marketcap"
+                  >$--.--.--</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="network-price">
+            <span class="network-name">Base</span>
+            <div class="price-details" id="uni-base-price">
+              <div>
+                <span class="price-path">USDC:</span>
+                <span class="price-value" id="uni-base-price-usdc"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">ETH:</span>
+                <span class="price-value" id="uni-base-price-eth"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">Supply:</span>
+                <span class="price-value" id="uni-base-price-supply"
+                  >--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">MarketCap:</span>
+                <span class="price-value" id="uni-base-price-marketcap"
+                  >$--.--.--</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="token-group">
+        <div class="token-row">
+          <div class="token-name ens">ENS</div>
+          <div class="token-price" id="ens-price">$--.--.--</div>
+        </div>
+        <div class="network-prices" id="ens-networks">
+          <div class="network-price">
+            <span class="network-name">Ethereum</span>
+            <div class="price-details" id="ens-eth-price">
+              <div>
+                <span class="price-path">USDC:</span>
+                <span class="price-value" id="ens-eth-price-usdc"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">ETH:</span>
+                <span class="price-value" id="ens-eth-price-eth"
+                  >$--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">Supply:</span>
+                <span class="price-value" id="ens-eth-price-supply"
+                  >--.--.--</span
+                >
+              </div>
+              <div>
+                <span class="price-path">MarketCap:</span>
+                <span class="price-value" id="ens-eth-price-marketcap"
+                  >$--.--.--</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="custom-token-section">
+      <div class="input-container">
+        <input
+          type="text"
+          id="token-address"
+          placeholder="Enter token address"
+        />
+        <button id="fetch-token">Fetch Prices</button>
+      </div>
+      <div
+        id="custom-token-result"
+        class="tokens-container"
+        style="display: none"
+      >
+        <div class="token-group">
+          <div class="token-row">
+            <div class="token-name custom-token" id="custom-token-symbol">
+              --
+            </div>
+            <div class="token-price" id="custom-token-price">$--.--.--</div>
+          </div>
+          <div class="network-prices" id="custom-token-networks">
+            <!-- Networks will be added dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="info-container">
+      <span
+        ><i>Check The Chain</i> gets real-time prices from UniswapV3 pools.
+        <i>Secure, fast and totally onchain.</i></span
+      >
+    </div>
+
+
+    <a
+      href="https://docs.uniswap.org/sdk/v3/guides/advanced/price-oracle"
+      target="_blank"
+      style="text-decoration: none"
+    >
+      <img
+        src="https://github.com/Uniswap/brand-assets/raw/main/Uniswap%20Brand%20Assets/Uniswap_icon_pink.svg"
+        alt="Uniswap logo"
+        class="uniswap-logo"
+        width="16"
+        height="16"
+      />
+    </a>
+
+
+    <a
+      href="https://etherscan.io/address/0x0000000000cDC1F8d393415455E382c30FBc0a84"
+      target="_blank"
+      class="contract-link"
+      id="contract-link"
+    >
+      0x0000000000cDC1F8d393415455E382c30FBc0a84
+    </a>
+
+
+    <script type="module">
+      import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.4/ethers.min.js";
+
+
+      const CONTRACT_ADDRESS = "0x0000000000cDC1F8d393415455E382c30FBc0a84";
+      const CONTRACT_ABI = [
+        "function checkPrice(string) view returns (uint256, string)",
+        "function checkPriceInETHToUSDC(string) view returns (uint256, string)",
+        "function checkPriceInETH(string) view returns (uint256, string)",
+        "function checkPrice(address) view returns (uint256, string)",
+        "function checkPriceInETHToUSDC(address) view returns (uint256, string)",
+        "function checkPriceInETH(address) view returns (uint256, string)",
+        "function addresses(string) view returns (address)",
+        "function totalSupply(address) view returns (uint256, string)",
+      ];
+
+
+      const RPC_URLS = {
+        ethereum: [
+          "https://eth-mainnet.public.blastapi.io",
+          "https://eth.llamarpc.com",
+          "https://rpc.ankr.com/eth",
+          "https://ethereum-rpc.publicnode.com",
+        ],
+        optimism: [
+          "https://mainnet.optimism.io",
+          "https://optimism.llamarpc.com",
+          "https://optimism-mainnet.public.blastapi.io",
+          "https://optimism-rpc.publicnode.com",
+        ],
+        arbitrum: [
+          "https://arb1.arbitrum.io/rpc",
+          "https://arbitrum.llamarpc.com",
+          "https://arbitrum-one.public.blastapi.io",
+          "https://arbitrum-one-rpc.publicnode.com",
+        ],
+        polygon: [
+          "https://polygon-rpc.com",
+          "https://polygon.llamarpc.com",
+          "https://polygon-mainnet.public.blastapi.io",
+          "https://polygon-bor-rpc.publicnode.com",
+        ],
+        base: [
+          "https://mainnet.base.org",
+          "https://base.llamarpc.com",
+          "https://base-rpc.publicnode.com",
+          "https://base-mainnet.public.blastapi.io",
+        ],
+      };
+
+
+      const NETWORKS = {
+        ethereum: {
+          rpc: RPC_URLS.ethereum,
+          elementId: "eth-price",
+        },
+        optimism: {
+          rpc: RPC_URLS.optimism,
+          elementId: "op-price",
+        },
+        arbitrum: {
+          rpc: RPC_URLS.arbitrum,
+          elementId: "arb-price",
+        },
+        polygon: {
+          rpc: RPC_URLS.polygon,
+          elementId: "poly-price",
+        },
+        base: {
+          rpc: RPC_URLS.base,
+          elementId: "base-price",
+        },
+      };
+
+
+      async function getWorkingProvider(rpcs) {
+        for (const rpc of rpcs) {
+          try {
+            const provider = new ethers.JsonRpcProvider(rpc);
+            await provider.getBlockNumber(); // Test call.
+            return provider;
+          } catch (e) {
+            console.log(`RPC ${rpc} failed, trying next...`);
+            continue;
+          }
+        }
+        throw new Error("No working RPC found");
+      }
+
+
+      const TOKENS = ["cbBTC", "WETH", "UNI", "ENS"];
+      const prices = {
+        cbBTC: { networks: {}, averages: {} },
+        WETH: { networks: {}, averages: {} },
+        UNI: { networks: {}, averages: {} },
+        ENS: { networks: {}, averages: {} },
+      };
+
+
+      const BLOCK_EXPLORERS = {
+        ethereum: "https://etherscan.io/token/",
+        optimism: "https://optimistic.etherscan.io/token/",
+        arbitrum: "https://arbiscan.io/token/",
+        polygon: "https://polygonscan.com/token/",
+        base: "https://basescan.org/token/",
+      };
+
+
+      function truncateAddress(address) {
+        return `${address.slice(0, 6)}...${address.slice(-4)}`;
+      }
+
+
+      function formatMarketCap(number) {
+        if (number >= 1e9) {
+          return `$${(number / 1e9).toFixed(2)}B`;
+        } else if (number >= 1e6) {
+          return `$${(number / 1e6).toFixed(2)}M`;
+        } else {
+          return `$${number.toFixed(2)}`;
+        }
+      }
+
+
+      async function getPrice(token, network, rpcs) {
+        // Skip Optimism and Polygon for cbBTC.
+        if (
+          token === "cbBTC" &&
+          (network === "optimism" || network === "polygon")
+        ) {
+          return;
+        }
+
+
+        // Skip all networks except Ethereum and Arbitrum for ENS
+        if (token === "ENS" && !(network === "ethereum")) {
+          return;
+        }
+
+
+        try {
+          const provider = await getWorkingProvider(rpcs);
+          const contract = new ethers.Contract(
+            CONTRACT_ADDRESS,
+            CONTRACT_ABI,
+            provider
+          );
+
+
+          // Get token address for this symbol (same for any network).
+          const tokenAddress = await contract.addresses(token);
+
+
+          // Set up network link only once.
+          setupNetworkLinks(token, network, tokenAddress);
+
+
+          // Get formatted supply string.
+          const [_, supplyStr] = await contract["totalSupply(address)"](
+            tokenAddress
+          );
+          const supply = parseFloat(supplyStr);
+
+
+          // Update supply UI.
+          document.getElementById(
+            `${token.toLowerCase()}-${NETWORKS[network].elementId}-supply`
+          ).textContent = supplyStr;
+
+
+          if (token === "WETH") {
+            const [_, usdcPriceStr] = await contract["checkPrice(string)"](
+              token
+            );
+            const usdcPrice = parseFloat(usdcPriceStr);
+
+
+            prices[token].networks[network] = {
+              usdc: usdcPrice,
+              eth: 1.0,
+            };
+            prices[token].averages[network] = usdcPrice;
+
+
+            // Calculate market cap.
+            const marketcap = usdcPrice * supply;
+
+
+            // Update USDC price.
+            document.getElementById(
+              `${token.toLowerCase()}-${NETWORKS[network].elementId}-usdc`
+            ).textContent = `$${usdcPrice.toFixed(4)}`;
+
+
+            // Update market cap.
+            document.getElementById(
+              `${token.toLowerCase()}-${NETWORKS[network].elementId}-marketcap`
+            ).textContent = formatMarketCap(marketcap);
+
+
+            // Hide the ETH price line completely for WETH.
+            const ethPriceEl = document.getElementById(
+              `${token.toLowerCase()}-${NETWORKS[network].elementId}-eth`
+            );
+            if (ethPriceEl) {
+              ethPriceEl.parentElement.style.display = "none";
+            }
+          } else if (token === "cbBTC") {
+            const [_, usdcPriceStr] = await contract["checkPrice(string)"](
+              token
+            );
+            const [__, ethPriceStr] = await contract["checkPriceInETH(string)"](
+              token
+            );
+
+
+            const usdcPrice = parseFloat(usdcPriceStr);
+            const ethPrice = parseFloat(ethPriceStr);
+
+
+            prices[token].networks[network] = {
+              usdc: usdcPrice,
+              eth: ethPrice,
+            };
+            prices[token].averages[network] = usdcPrice;
+
+
+            // Calculate market cap using USDC price.
+            const marketcap = usdcPrice * supply;
+
+
+            document.getElementById(
+              `${token.toLowerCase()}-${NETWORKS[network].elementId}-usdc`
+            ).textContent = `$${usdcPrice.toFixed(4)}`;
+            document.getElementById(
+              `${token.toLowerCase()}-${NETWORKS[network].elementId}-eth`
+            ).textContent = `${ethPrice.toFixed(4)}`;
+            document.getElementById(
+              `${token.toLowerCase()}-${NETWORKS[network].elementId}-marketcap`
+            ).textContent = formatMarketCap(marketcap);
+          } else {
+            const [_, usdcPriceStr] = await contract["checkPrice(string)"](
+              token
+            );
+            const [__, ethToUsdcPriceStr] = await contract[
+              "checkPriceInETHToUSDC(string)"
+            ](token);
+            const [___, ethPriceStr] = await contract[
+              "checkPriceInETH(string)"
+            ](token);
+
+
+            const usdcPrice = parseFloat(usdcPriceStr);
+            const ethToUsdcPrice = parseFloat(ethToUsdcPriceStr);
+            const ethPrice = parseFloat(ethPriceStr);
+
+
+            prices[token].networks[network] = {
+              usdc: usdcPrice,
+              eth: ethPrice,
+            };
+            prices[token].averages[network] = (usdcPrice + ethToUsdcPrice) / 2;
+
+
+            // Calculate market cap using average price.
+            const marketcap = prices[token].averages[network] * supply;
+
+
+            document.getElementById(
+              `${token.toLowerCase()}-${NETWORKS[network].elementId}-usdc`
+            ).textContent = `$${usdcPrice.toFixed(4)}`;
+            document.getElementById(
+              `${token.toLowerCase()}-${NETWORKS[network].elementId}-eth`
+            ).textContent = `${ethPrice.toFixed(4)}`;
+            document.getElementById(
+              `${token.toLowerCase()}-${NETWORKS[network].elementId}-marketcap`
+            ).textContent = formatMarketCap(marketcap);
+          }
+
+
+          updateAveragePrice(token);
+        } catch (error) {
+          console.error(`Error fetching ${token} data on ${network}:`, error);
+          document.getElementById(
+            `${token.toLowerCase()}-${NETWORKS[network].elementId}-usdc`
+          ).textContent = "Error";
+          document.getElementById(
+            `${token.toLowerCase()}-${NETWORKS[network].elementId}-eth`
+          ).textContent = "Error";
+          document.getElementById(
+            `${token.toLowerCase()}-${NETWORKS[network].elementId}-marketcap`
+          ).textContent = "Error";
+        }
+      }
+
+
+      async function getTokenInfo(tokenAddress, network, rpc) {
+        try {
+          const provider = new ethers.providers.JsonRpcProvider(rpc);
+          const tokenContract = new ethers.Contract(
+            tokenAddress,
+            [
+              "function symbol() view returns (string)",
+              "function decimals() view returns (uint8)",
+            ],
+            provider
+          );
+
+
+          const symbol = await tokenContract.symbol();
+          const decimals = await tokenContract.decimals();
+
+
+          return { symbol, decimals };
+        } catch (error) {
+          console.error(`Error getting token info on ${network}:`, error);
+          return null;
+        }
+      }
+
+
+      async function fetchCustomToken() {
+        try {
+          const input = document.getElementById("token-address").value.trim();
+          const isAddress = input.startsWith("0x") && input.length === 42;
+
+
+          const resultContainer = document.getElementById(
+            "custom-token-result"
+          );
+          const networksContainer = document.getElementById(
+            "custom-token-networks"
+          );
+          networksContainer.innerHTML = "";
+
+
+          if (isAddress && !input.match(/^0x[0-9a-fA-F]{40}$/)) {
+            alert("Please enter a valid token address");
+            return;
+          }
+
+
+          resultContainer.style.display = "block";
+          let totalValue = 0;
+          let validPriceCount = 0;
+
+
+          // Try getting prices from each network
+          for (const [network, rpcs] of Object.entries(RPC_URLS)) {
+            let provider;
+            // Try each RPC URL until one works
+            for (const rpc of rpcs) {
+              try {
+                provider = new ethers.JsonRpcProvider(rpc);
+                await provider.getBlockNumber(); // Test the connection
+                break;
+              } catch (error) {
+                console.log(`RPC ${rpc} failed, trying next...`);
+                continue;
+              }
+            }
+
+
+            if (!provider) {
+              console.error(`No working RPC found for ${network}`);
+              continue;
+            }
+
+
+            try {
+              const priceContract = new ethers.Contract(
+                CONTRACT_ADDRESS,
+                CONTRACT_ABI,
+                provider
+              );
+
+
+              // Get token symbol if it's an address
+              let symbol = input;
+              if (isAddress) {
+                const tokenContract = new ethers.Contract(
+                  input,
+                  ["function symbol() view returns (string)"],
+                  provider
+                );
+                try {
+                  symbol = await tokenContract.symbol();
+                } catch (error) {
+                  console.error("Error fetching token symbol:", error);
+                  symbol = "Unknown Token";
+                }
+              }
+
+
+              try {
+                // Get price in USDC using ETH path
+                const [priceInUSDC] = isAddress
+                  ? await priceContract["checkPriceInETHToUSDC(address)"](input)
+                  : await priceContract["checkPriceInETHToUSDC(string)"](
+                      input.toUpperCase()
+                    );
+
+
+                const formattedPrice = parseFloat(
+                  ethers.formatUnits(priceInUSDC, 6)
+                );
+
+
+                if (formattedPrice > 0) {
+                  // Get supply for market cap calculation
+                  const [supply] = isAddress
+                    ? await priceContract["totalSupply(address)"](input)
+                    : await priceContract["totalSupply(address)"](
+                        await priceContract.addresses(input.toUpperCase())
+                      );
+
+
+                  const formattedSupply = parseFloat(
+                    ethers.formatEther(supply)
+                  );
+                  const marketCap = formattedPrice * formattedSupply;
+
+
+                  const networkDiv = document.createElement("div");
+                  networkDiv.className = "network-price";
+                  networkDiv.innerHTML = `
+              <span class="network-name">${
+                network.charAt(0).toUpperCase() + network.slice(1)
+              }</span>
+              <div class="price-details">
+                <div>
+                  <span class="price-path">Price:</span>
+                  <span class="price-value">$${formattedPrice.toFixed(4)}</span>
+                </div>
+                <div>
+                  <span class="price-path">Supply:</span>
+                  <span class="price-value">${formattedSupply.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span class="price-path">MarketCap:</span>
+                  <span class="price-value">${formatMarketCap(marketCap)}</span>
+                </div>
+              </div>
+            `;
+                  networksContainer.appendChild(networkDiv);
+
+
+                  totalValue += formattedPrice;
+                  validPriceCount++;
+                }
+              } catch (error) {
+                console.error(`Error fetching price on ${network}:`, error);
+                continue;
+              }
+
+
+              // Update symbol in UI after successful fetch
+              document.getElementById("custom-token-symbol").textContent =
+                symbol;
+            } catch (error) {
+              console.error(`Error setting up contract on ${network}:`, error);
+            }
+          }
+
+
+          if (validPriceCount > 0) {
+            const averagePrice = totalValue / validPriceCount;
+            document.getElementById(
+              "custom-token-price"
+            ).textContent = `$${averagePrice.toFixed(4)}`;
+          } else {
+            alert("No valid prices found for this token");
+            resultContainer.style.display = "none";
+          }
+        } catch (error) {
+          console.error("Fatal error in fetchCustomToken:", error);
+          alert("An error occurred while fetching token information");
+        }
+      }
+
+
+      // Add event listeners.
+      document
+        .getElementById("fetch-token")
+        .addEventListener("click", fetchCustomToken);
+      document
+        .getElementById("token-address")
+        .addEventListener("keypress", (e) => {
+          if (e.key === "Enter") fetchCustomToken();
+        });
+
+
+      function setupNetworkLinks(token, network, tokenAddress) {
+        const networkElement = document.getElementById(
+          `${token.toLowerCase()}-${NETWORKS[network].elementId}`
+        ).previousElementSibling;
+
+
+        if (!networkElement.hasAttribute("data-address-set")) {
+          networkElement.innerHTML = `<a href="${
+            BLOCK_EXPLORERS[network]
+          }${tokenAddress}" 
+      target="_blank" 
+      style="color: #888; text-decoration: none;">
+      ${
+        networkElement.textContent
+      } <span style="opacity: 0.5; font-family: monospace; font-size: 0.9em;">${truncateAddress(
+            tokenAddress
+          )}</span>
+    </a>`;
+          networkElement.setAttribute("data-address-set", "true");
+        }
+      }
+
+
+      function updateAveragePrice(token) {
+        const validAverages = Object.values(prices[token].averages).filter(
+          (p) => !isNaN(p)
+        );
+        if (validAverages.length > 0) {
+          const totalAverage =
+            validAverages.reduce((a, b) => a + b) / validAverages.length;
+          document.getElementById(
+            `${token.toLowerCase()}-price`
+          ).textContent = `$${totalAverage.toFixed(4)}`;
+        }
+      }
+
+
+      async function updateAllPrices() {
+        for (const token of TOKENS) {
+          for (const [network, config] of Object.entries(NETWORKS)) {
+            getPrice(token, network, config.rpc);
+          }
+        }
+      }
+
+
+      // Setup click listeners for dropdowns.
+      TOKENS.forEach((token) => {
+        document
+          .getElementById(`${token.toLowerCase()}-price`)
+          .addEventListener("click", () => {
+            document
+              .getElementById(`${token.toLowerCase()}-networks`)
+              .classList.toggle("active");
+          });
+      });
+
+
+      // Initial price fetch and setup interval.
+      updateAllPrices();
+      setInterval(updateAllPrices, 10000);
+    </script>
+    <a
+      href="https://app.uniswap.org/swap?chain=mainnet&inputCurrency=NATIVE&outputCurrency=0x00000000000007c8612ba63df8ddefd9e6077c97&value=0.015&field=input"
+      id="uniswap-command"
+      target="_blank"
+    >
+      <span class="dollar">$</span>&#8984;
+    </a>
+  </body>
+</html>
